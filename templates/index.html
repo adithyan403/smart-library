@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #020617 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .shelf-container {
+            background: transparent;
+            min-height: 100vh;
+            padding: 20px 40px;
+            perspective: 1200px;
+        }
+
+        .shelf {
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 40px 15px 15px;
+            box-shadow: inset 0 20px 40px rgba(0, 0, 0, 0.8), 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.05);
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(5deg);
+            backdrop-filter: blur(10px);
+        }
+
+        .shelf-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 50px;
+            min-height: 120px;
+            align-items: flex-end;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .shelf-row::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: -15px;
+            right: -15px;
+            height: 25px;
+            background: linear-gradient(180deg, #1e293b 0%, #020617 100%);
+            border-top: 2px solid rgba(56, 189, 248, 0.9);
+            box-shadow: 0 -5px 20px rgba(56, 189, 248, 0.5), 0 15px 25px rgba(0, 0, 0, 0.8);
+            transform: translateZ(20px) rotateX(25deg);
+            transform-origin: bottom;
+            border-radius: 3px;
+            z-index: -1;
+        }
+
+        .shelf-row::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(0deg, rgba(56, 189, 248, 0.15) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: -2;
+            filter: blur(15px);
+        }
+
+        .book {
+            flex: none;
+            width: 80px;
+            height: 110px;
+            border-radius: 4px 6px 6px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8px;
+            box-sizing: border-box;
+            word-break: break-word;
+            white-space: normal;
+            transform: translateZ(10px);
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: inset -2px 0 5px rgba(0, 0, 0, 0.3), 3px 3px 5px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: popIn 0.6s ease-out backwards;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translateY(50px) translateZ(0) scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0) translateZ(10px) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .book:hover {
+            transform: translateY(-15px) translateZ(40px) scale(1.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            z-index: 20;
+
+        }
+
+        .book::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .book-spacer {
+            flex: 1;
+            max-width: 50px;
+            min-width: 35px;
+            min-height: 20px;
+        }
+
+        .dept-header {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent);
+            border-left: 4px solid var(--dept-color);
+            padding: 10px 18px;
+            border-radius: 4px;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateZ(30px);
+        }
+
+        .dept-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-counter {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .floating-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 12s infinite ease-in-out;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: translateY(-120px) rotate(180deg) scale(1.5);
+                opacity: 0.9;
+            }
+        }
+
+        .glow-line {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--dept-color), transparent);
+            margin: 8px 0;
+            box-shadow: 0 0 10px var(--dept-color);
+        }
+
+        #book-modal {
+            backdrop-filter: blur(12px);
+        }
+
+        .modal-book {
+            width: 160px;
+            height: 220px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+    <!-- Floating Particles Background -->
+    <div id="particles"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-2xl">Cloud Server</h1>
+                    <p class="text-gray-400 text-xs">Digital Book Collection</p>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex bg-gray-800/80 p-1 rounded-xl shadow-lg border border-gray-700">
+                <button onclick="switchTab('main')" id="tab-main" class="px-6 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-md">Main Library</button>
+                <button onclick="switchTab('ai')" id="tab-ai" class="px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white">AI Editions</button>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl border border-white/20">
+                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z">
+                        </path>
+                    </svg>
+                    <span class="text-white font-semibold" id="total-books">0</span>
+                    <span class="text-gray-400 text-sm">Books</span>
+                </div>
+                <a href="/admin"
+                    class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-purple-500/30">
+                    Admin
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Library -->
+    <main class="shelf-container pt-24 pb-10">
+        <div class="max-w-7xl mx-auto">
+            <!-- Library Title -->
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-bold text-white mb-2">📚 Our Library Collection</h2>
+                <p class="text-gray-400">Browse our books by department</p>
+            </div>
+
+            <!-- Library Grid -->
+            <div id="library-content" class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Departments will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-20">
+                <div
+                    class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center">
+                    <svg class="w-16 h-16 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Library is Empty</h3>
+                <p class="text-gray-400 mb-6">Start by adding departments and books in the admin panel</p>
+                <a href="/admin"
+                    class="inline-block px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition">
+                    Go to Admin Panel
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Book Detail Modal -->
+    <div id="book-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
+            <div class="flex gap-6">
+                <div id="modal-book-cover" class="modal-book"></div>
+                <div class="flex-1">
+                    <h3 id="modal-book-name" class="text-2xl font-bold text-white mb-2"></h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span id="modal-dept-badge" class="px-3 py-1 rounded-full text-sm font-medium"></span>
+                    </div>
+                    <p id="modal-book-size" class="text-gray-400 text-sm mb-6"></p>
+                    <div class="flex gap-3">
+                        <button onclick="readBook()"
+                            class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                </path>
+                            </svg>
+                            Read Book
+                        </button>
+                        <button onclick="closeModal()"
+                            class="px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Reader -->
+    <div id="pdf-reader" class="fixed inset-0 bg-gray-900 hidden flex flex-col" style="z-index: 10000;">
+        <div class="bg-gray-800 px-4 py-3 flex flex-wrap items-center justify-between gap-y-3 border-b border-gray-700 shadow-lg relative"
+            style="z-index: 10010;">
+            <div class="flex items-center gap-2 flex-[1_1_100%] sm:flex-1">
+                <button onclick="closePdf()" class="p-2 text-gray-400 hover:text-white transition cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </button>
+                <h3 id="pdf-title" class="text-white font-semibold flex-1 min-w-0 truncate text-sm sm:text-base"></h3>
+            </div>
+
+            <div
+                class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-700 px-2 py-1.5 rounded-lg w-full sm:w-auto order-last sm:order-none">
+                <button onclick="setDrawMode('none')" id="tool-none"
+                    class="p-1 px-2 sm:px-3 text-white bg-blue-600 rounded font-medium transition cursor-pointer text-xs sm:text-sm">Hand</button>
+                <button onclick="setDrawMode('pen')" id="tool-pen"
+                    class="p-1 px-2 sm:px-3 text-gray-300 hover:text-white rounded transition flex items-center gap-1 cursor-pointer text-xs sm:text-sm"><span
+                        class="w-3 h-3 bg-red-500 rounded-full inline-block"></span> Pen</button>
+                <button onclick="setDrawMode('highlight')" id="tool-highlight"
+                    class="p-1 px-2 sm:px-3 text-gray-300 hover:text-white rounded transition flex items-center gap-1 cursor-pointer text-xs sm:text-sm"><span
+                        class="w-3 h-3 bg-yellow-300 rounded-sm inline-block opacity-75"></span> Highlight</button>
+                <div class="w-px h-5 bg-gray-600 mx-0.5 sm:mx-1"></div>
+                <button onclick="clearCanvas()"
+                    class="p-1 px-2 sm:px-3 text-red-400 hover:text-red-300 transition cursor-pointer text-xs sm:text-sm">Clear</button>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 flex-[1_1_100%] sm:flex-1">
+                <button onclick="pdfZoomOut()" class="p-1 sm:p-2 text-gray-400 hover:text-white cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                    </svg>
+                </button>
+                <span id="pdf-zoom" class="text-gray-400 text-xs sm:text-sm w-10 text-center">100%</span>
+                <button onclick="pdfZoomIn()" class="p-1 sm:p-2 text-gray-400 hover:text-white cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                    </svg>
+                </button>
+                <a id="pdf-download-link" href="#" download
+                    class="p-1 sm:p-2 text-gray-400 hover:text-white cursor-pointer ml-1 sm:ml-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </a>
+                <button onclick="togglePdfFullscreen()"
+                    class="p-1 sm:p-2 text-gray-400 hover:text-white cursor-pointer ml-1 sm:ml-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="pdf-scroll-container" class="flex-1 overflow-auto flex flex-col items-center p-4 bg-gray-900 gap-8"
+            style="scroll-behavior: smooth;">
+            <!-- Canvases added dynamically -->
+        </div>
+    </div>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let libraryData = { departments: [], books: [] };
+        let selectedBook = null;
+        let currentPdf = null;
+        let pdfScale = 1.2;
+
+        const DEPT_COLORS = [
+            { bg: 'from-red-500 to-rose-600', text: 'text-white' },
+            { bg: 'from-blue-500 to-indigo-600', text: 'text-white' },
+            { bg: 'from-green-500 to-emerald-600', text: 'text-white' },
+            { bg: 'from-yellow-500 to-orange-600', text: 'text-white' },
+            { bg: 'from-purple-500 to-violet-600', text: 'text-white' },
+            { bg: 'from-pink-500 to-rose-600', text: 'text-white' },
+            { bg: 'from-cyan-500 to-teal-600', text: 'text-white' },
+            { bg: 'from-lime-500 to-green-600', text: 'text-white' }
+        ];
+
+        const BOOK_COLORS = [
+            '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6',
+            '#8b5cf6', '#ec4899', '#f43f5e', '#06b6d4', '#84cc16', '#a855f7'
+        ];
+
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'floating-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.background = DEPT_COLORS[Math.floor(Math.random() * DEPT_COLORS.length)].bg.replace('from-', '').replace(' to-', '');
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        let currentTab = 'main';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabMain = document.getElementById('tab-main');
+            const tabAi = document.getElementById('tab-ai');
+            
+            if (tab === 'main') {
+                tabMain.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-md';
+                tabAi.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white';
+            } else {
+                tabAi.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition bg-purple-600 text-white shadow-md';
+                tabMain.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white';
+            }
+            fetchData();
+        }
+
+        // Fetch library data
+        async function fetchData() {
+            try {
+                if (currentTab === 'main') {
+                    const res = await fetch('/api/all_books');
+                    const data = await res.json();
+                    libraryData.books = data.books || [];
+
+                    const deptRes = await fetch('/api/departments');
+                    const deptData = await deptRes.json();
+                    libraryData.departments = deptData.departments || [];
+                } else {
+                    const res = await fetch('/api/ai_books');
+                    const data = await res.json();
+                    libraryData.books = data.books || [];
+                    
+                    const depts = Array.from(new Set(libraryData.books.map(b => b.department)));
+                    libraryData.departments = depts.map(d => ({
+                        name: d,
+                        book_count: libraryData.books.filter(b => b.department === d).length
+                    }));
+                }
+
+                renderLibrary();
+                document.getElementById('total-books').textContent = libraryData.books.length;
+            } catch (err) {
+                console.error('Failed to fetch data:', err);
+            }
+        }
+
+        // Render library
+        function renderLibrary() {
+            const content = document.getElementById('library-content');
+            const empty = document.getElementById('empty-state');
+
+            if (libraryData.departments.length === 0) {
+                content.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            // Responsive books per row
+            const screenWidth = window.innerWidth;
+            let booksPerRow = 10;
+            if (screenWidth < 640) booksPerRow = 4;
+            else if (screenWidth < 1024) booksPerRow = 6;
+            else if (screenWidth < 1280) booksPerRow = 8;
+
+            empty.classList.add('hidden');
+            content.innerHTML = libraryData.departments.map((dept, deptIndex) => {
+                const deptBooks = libraryData.books.filter(b => b.department === dept.name);
+                const color = DEPT_COLORS[deptIndex % DEPT_COLORS.length];
+                const rows = Math.ceil(deptBooks.length / booksPerRow);
+
+                let shelvesHTML = '';
+
+                for (let row = 0; row < Math.max(3, rows); row++) {
+                    const rowBooks = deptBooks.slice(row * booksPerRow, (row + 1) * booksPerRow);
+                    const totalSlots = booksPerRow;
+                    const spacers = Math.floor(Math.random() * 3);
+
+                    let booksHTML = '';
+
+                    // Add random spacers at start
+                    for (let s = 0; s < spacers; s++) {
+                        booksHTML += '<div class="book-spacer"></div>';
+                    }
+
+                    // Add books
+                    rowBooks.forEach((book, i) => {
+                        const bookColor = BOOK_COLORS[(deptIndex * 10 + row * 10 + i) % BOOK_COLORS.length];
+                        const animDelay = (row * 0.1) + (i * 0.05);
+
+                        const escName = book.name.replace(/'/g, "\\'");
+                        const escFilename = book.filename.replace(/'/g, "\\'");
+                        const escDept = dept.name.replace(/'/g, "\\'");
+
+                        booksHTML += `
+                            <div class="book" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" 
+                                 data-filename="${book.filename}" data-deptname="${dept.name}"
+                                 style="background: linear-gradient(180deg, ${bookColor} 0%, ${adjustColor(bookColor, -30)} 100%); --dept-color: ${bookColor}; animation-delay: ${animDelay}s;"
+                                 onclick="showBookModal('${escName}', '${escFilename}', '${escDept}', '${bookColor}', ${book.size})"
+                                 title="${book.name}">
+                                ${book.name}
+                            </div>
+                        `;
+                    });
+
+                    // Add random spacers at end
+                    for (let s = 0; s < (totalSlots - rowBooks.length - spacers); s++) {
+                        booksHTML += '<div class="book-spacer"></div>';
+                    }
+
+                    shelvesHTML += `<div class="shelf-row w-full flex justify-between" ondragover="handleDragOver(event)" ondrop="handleDrop(event, this)">${booksHTML}</div>`;
+                }
+
+                return `
+                    <div class="relative w-full" style="--dept-color: ${BOOK_COLORS[deptIndex % BOOK_COLORS.length]}; animation: fadeInUp 0.6s ease ${deptIndex * 0.1}s both;">
+                        <div class="dept-header" style="background: linear-gradient(90deg, ${BOOK_COLORS[deptIndex % BOOK_COLORS.length]}, transparent);">
+                            <div class="dept-icon shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-white font-extrabold text-xl tracking-wide">${dept.name}</h3>
+                            <span class="book-counter shadow-md">${deptBooks.length} books</span>
+                        </div>
+                        <div class="glow-line"></div>
+                        <div class="shelf w-full">
+                            ${shelvesHTML}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Adjust color brightness
+        function adjustColor(color, amount) {
+            const hex = color.replace('#', '');
+            const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+            const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+            const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        // Show book modal
+        function showBookModal(name, filename, dept, color, size) {
+            selectedBook = { name, filename, department: dept };
+
+            const modal = document.getElementById('book-modal');
+            document.getElementById('modal-book-name').textContent = name;
+            document.getElementById('modal-book-size').textContent = `Size: ${(size / 1024 / 1024).toFixed(2)} MB`;
+            document.getElementById('modal-dept-badge').textContent = dept;
+            document.getElementById('modal-dept-badge').style.background = color;
+            document.getElementById('modal-dept-badge').style.color = 'white';
+
+            const cover = document.getElementById('modal-book-cover');
+            cover.style.background = `linear-gradient(180deg, ${color} 0%, ${adjustColor(color, -40)} 100%)`;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('book-modal').classList.add('hidden');
+            selectedBook = null;
+        }
+
+        // Drag and drop logic
+        let draggedBook = null;
+
+        function handleDragStart(e) {
+            if (e.target.classList.contains('book')) {
+                draggedBook = e.target;
+                e.target.style.opacity = '0.4';
+                e.target.style.transform = 'scale(0.9) rotate(180deg) translateZ(10px)';
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (e.target.classList.contains('book')) {
+                e.target.style.opacity = '1';
+                e.target.style.transform = '';
+                draggedBook = null;
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+        }
+
+        function handleDrop(e, targetRow) {
+            e.preventDefault();
+            if (draggedBook && targetRow) {
+                if (e.target.classList.contains('book-spacer')) {
+                    targetRow.insertBefore(draggedBook, e.target);
+                    e.target.remove();
+                } else if (e.target.classList.contains('book')) {
+                    targetRow.insertBefore(draggedBook, e.target);
+                } else {
+                    targetRow.appendChild(draggedBook);
+                }
+
+                const deptWrapper = targetRow.closest('.relative');
+                if (deptWrapper && draggedBook) {
+                    saveOrder(draggedBook.dataset.deptname, deptWrapper);
+                }
+            }
+            draggedBook = null;
+        }
+
+        function saveOrder(deptName, deptWrapper) {
+            if (!deptName) return;
+            const books = deptWrapper.querySelectorAll('.book');
+            const newOrder = Array.from(books).map(b => b.dataset.filename).filter(Boolean);
+
+            fetch('/api/save_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    department: deptName,
+                    order: newOrder
+                })
+            }).catch(console.error);
+        }
+
+        // Setup drawing logic
+        let drawMode = 'none';
+        const pageCanvases = {};
+        let pdfObserver = null;
+
+        function setDrawMode(mode) {
+            drawMode = mode;
+            document.getElementById('tool-none').className = mode === 'none' ? 'p-1 px-3 text-white bg-blue-600 rounded font-medium transition' : 'p-1 px-3 text-gray-300 hover:text-white rounded transition';
+            document.getElementById('tool-pen').className = mode === 'pen' ? 'p-1 px-3 text-white bg-blue-600 rounded font-medium transition flex items-center gap-1' : 'p-1 px-3 text-gray-300 hover:text-white rounded transition flex items-center gap-1';
+            document.getElementById('tool-highlight').className = mode === 'highlight' ? 'p-1 px-3 text-white bg-blue-600 rounded font-medium transition flex items-center gap-1' : 'p-1 px-3 text-gray-300 hover:text-white rounded transition flex items-center gap-1';
+
+            document.querySelectorAll('.draw-layer').forEach(c => {
+                c.style.pointerEvents = mode === 'none' ? 'none' : 'auto';
+            });
+        }
+
+        function setupDrawing(canvas) {
+            const ctx = canvas.getContext('2d');
+            let isDown = false;
+            let lastX = 0, lastY = 0;
+
+            function getCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                };
+            }
+
+            canvas.addEventListener('mousedown', e => {
+                if (drawMode === 'none') return;
+                isDown = true;
+                const pos = getCoords(e);
+                lastX = pos.x; lastY = pos.y;
+            });
+            canvas.addEventListener('mousemove', e => {
+                if (!isDown || drawMode === 'none') return;
+                const pos = getCoords(e);
+                ctx.beginPath();
+                if (drawMode === 'pen') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = '#ef4444'; // Red pen
+                    ctx.shadowColor = 'transparent';
+                    ctx.lineWidth = 3;
+                } else if (drawMode === 'highlight') {
+                    ctx.globalCompositeOperation = 'source-over'; // Using source-over with low opacity
+                    ctx.strokeStyle = 'rgba(253, 224, 71, 0.4)'; // Yellow highlight
+                    ctx.lineWidth = 20;
+                }
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                lastX = pos.x; lastY = pos.y;
+            });
+            canvas.addEventListener('mouseup', () => isDown = false);
+            canvas.addEventListener('mouseout', () => isDown = false);
+        }
+
+        function clearCanvas() {
+            document.querySelectorAll('.draw-layer').forEach(c => {
+                c.getContext('2d').clearRect(0, 0, c.width, c.height);
+            });
+        }
+
+        async function readBook() {
+            if (!selectedBook) return;
+
+            const book = selectedBook;  // Save a local reference!
+            const reader = document.getElementById('pdf-reader');
+            document.getElementById('pdf-title').textContent = book.name;
+            reader.classList.remove('hidden');
+            closeModal(); // This sets selectedBook = null
+
+            const container = document.getElementById('pdf-scroll-container');
+            container.innerHTML = '<div class="text-white text-xl mt-10 font-bold">Loading PDF...</div>';
+
+            // clear old canvases list
+            for (let k in pageCanvases) delete pageCanvases[k];
+            if (pdfObserver) pdfObserver.disconnect();
+
+            try {
+                const baseUrl = currentTab === 'main' ? '/api/read' : '/api/ai_read';
+                const url = `${baseUrl}/${encodeURIComponent(book.department)}/${encodeURIComponent(book.filename)}`;
+                const dlBtn = document.getElementById('pdf-download-link');
+                if (dlBtn) dlBtn.href = url;
+
+                currentPdf = await pdfjsLib.getDocument(url).promise;
+
+                container.innerHTML = '';
+
+                for (let i = 1; i <= currentPdf.numPages; i++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'relative shadow-2xl bg-white page-wrapper mb-8';
+                    wrapper.dataset.pageNumber = i;
+                    wrapper.id = 'page-wrapper-' + i;
+                    wrapper.style.minHeight = '600px';
+                    wrapper.style.width = '800px';
+                    wrapper.style.maxWidth = '100%';
+                    wrapper.style.display = 'flex';
+                    wrapper.style.justifyContent = 'center';
+                    wrapper.style.alignItems = 'center';
+                    wrapper.innerHTML = `<span class="text-gray-400 absolute">Loading page ${i}...</span>`;
+
+                    const pdfCanvas = document.createElement('canvas');
+                    pdfCanvas.className = 'pdf-bg relative';
+                    pdfCanvas.id = 'pdf-canvas-' + i;
+
+                    const drawCanvas = document.createElement('canvas');
+                    drawCanvas.className = 'draw-layer absolute top-0 left-0 w-full h-full';
+                    drawCanvas.id = 'draw-canvas-' + i;
+                    drawCanvas.style.pointerEvents = 'none';
+
+                    wrapper.appendChild(pdfCanvas);
+                    wrapper.appendChild(drawCanvas);
+                    container.appendChild(wrapper);
+
+                    setupDrawing(drawCanvas);
+                }
+
+                pdfObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const pageNum = parseInt(entry.target.dataset.pageNumber);
+                            if (!pageCanvases[pageNum]) {
+                                renderPdfPage(pageNum);
+                            }
+                        }
+                    });
+                }, { rootMargin: "500px" });
+
+                document.querySelectorAll('.page-wrapper').forEach(w => pdfObserver.observe(w));
+
+                setDrawMode('none');
+            } catch (err) {
+                console.error('Failed to load PDF:', err);
+                container.innerHTML = `<div class="text-red-500 text-xl mt-10 text-center">
+                    <p class="font-bold mb-2">Failed to load PDF</p>
+                    <p class="text-sm text-gray-400">${err.message || err}</p>
+                </div>`;
+            }
+        }
+
+        function renderPdfPage(num) {
+            pageCanvases[num] = true;
+            currentPdf.getPage(num).then(page => {
+                const viewport = page.getViewport({ scale: pdfScale });
+                const wrapper = document.getElementById('page-wrapper-' + num);
+                const pdfCanvas = document.getElementById('pdf-canvas-' + num);
+                const drawCanvas = document.getElementById('draw-canvas-' + num);
+
+                wrapper.style.width = viewport.width + 'px';
+                wrapper.style.minHeight = viewport.height + 'px';
+                wrapper.style.height = viewport.height + 'px';
+
+                const ctx = pdfCanvas.getContext('2d');
+                pdfCanvas.height = viewport.height;
+                pdfCanvas.width = viewport.width;
+
+                // Set the intrinsic size for the drawing canvas
+                drawCanvas.height = viewport.height;
+                drawCanvas.width = viewport.width;
+
+                page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+                    const label = wrapper.querySelector('span');
+                    if (label) wrapper.removeChild(label);
+                });
+            });
+        }
+
+        function closePdf() {
+            document.getElementById('pdf-reader').classList.add('hidden');
+            if (currentPdf) {
+                currentPdf.destroy();
+                currentPdf = null;
+            }
+            if (pdfObserver) pdfObserver.disconnect();
+            const container = document.getElementById('pdf-scroll-container');
+            container.innerHTML = '';
+        }
+
+        function reRenderAll() {
+            Object.keys(pageCanvases).forEach(num => {
+                renderPdfPage(parseInt(num));
+            });
+        }
+
+        function pdfZoomIn() {
+            pdfScale = Math.min(pdfScale + 0.2, 3);
+            document.getElementById('pdf-zoom').textContent = Math.round(pdfScale * 100) + '%';
+            if (currentPdf) reRenderAll();
+        }
+
+        function pdfZoomOut() {
+            pdfScale = Math.max(pdfScale - 0.2, 0.5);
+            document.getElementById('pdf-zoom').textContent = Math.round(pdfScale * 100) + '%';
+            if (currentPdf) reRenderAll();
+        }
+
+        function togglePdfFullscreen() {
+            const reader = document.getElementById('pdf-reader');
+            if (!document.fullscreenElement) {
+                reader.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Keyboard shortcuts
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                if (!document.getElementById('pdf-reader').classList.contains('hidden')) {
+                    closePdf();
+                } else {
+                    closeModal();
+                }
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (libraryData.departments.length > 0) renderLibrary();
+        });
+
+        // Initialize
+        createParticles();
+        fetchData();
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+credentials.json
+token.json
+.env
+.vscode/
+Prev. Qn 7 IET304.pdf
+iet304_q7_temp.txt
