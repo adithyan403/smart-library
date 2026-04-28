@@ -246,10 +246,12 @@
                     <p class="text-gray-400 text-xs">Digital Book Collection</p>
                 </div>
             </div>
-            
-            <div class="hidden md:flex bg-gray-800/80 p-1 rounded-xl shadow-lg border border-gray-700">
-                <button onclick="switchTab('main')" id="tab-main" class="px-6 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-md">Main Library</button>
-                <button onclick="switchTab('ai')" id="tab-ai" class="px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white">AI Editions</button>
+            <div class="hidden md:flex bg-gray-800/80 p-1.5 rounded-xl shadow-lg border border-gray-700 items-center gap-2">
+                <input type="text" id="ai-topic-input" placeholder="Enter a topic for AI..." class="bg-transparent border-none text-white px-4 py-1.5 focus:outline-none w-64 text-sm" />
+                <button onclick="startCustomAIGeneration()" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-md flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Generate
+                </button>
             </div>
 
             <div class="flex items-center gap-4">
@@ -306,8 +308,7 @@
 
     <!-- Book Detail Modal -->
     <div id="book-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div
-            class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
             <div class="flex gap-6">
                 <div id="modal-book-cover" class="modal-book"></div>
                 <div class="flex-1">
@@ -317,24 +318,39 @@
                     </div>
                     <p id="modal-book-size" class="text-gray-400 text-sm mb-6"></p>
                     <div class="flex gap-3">
-                        <button onclick="readBook()"
-                            class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                </path>
-                            </svg>
+                        <button onclick="readBook()" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                             Read Book
                         </button>
-                        <button onclick="closeModal()"
-                            class="px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                        <button onclick="closeModal()" class="px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Generation Wait Modal -->
+    <div id="ai-wait-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-gray-900 rounded-3xl p-8 max-w-lg w-full border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.2)] text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse"></div>
+            
+            <div class="mb-6 flex justify-center">
+                <div class="w-16 h-16 rounded-full border-4 border-gray-800 border-t-purple-500 animate-spin"></div>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-white mb-2" id="ai-wait-title">Initializing AI Core...</h3>
+            <p class="text-gray-400 mb-8" id="ai-wait-subtitle">Preparing to write your custom book</p>
+            
+            <div class="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div class="flex items-center gap-3 mb-3 justify-center text-purple-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span class="font-semibold text-sm tracking-wider uppercase">Fascinating Fact</span>
+                </div>
+                <p id="ai-wait-quote" class="text-lg text-gray-300 italic font-medium leading-relaxed">
+                    Connecting to neural network...
+                </p>
             </div>
         </div>
     </div>
@@ -446,51 +462,91 @@
             }
         }
 
-        let currentTab = 'main';
-
-        function switchTab(tab) {
-            currentTab = tab;
-            const tabMain = document.getElementById('tab-main');
-            const tabAi = document.getElementById('tab-ai');
-            
-            if (tab === 'main') {
-                tabMain.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow-md';
-                tabAi.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white';
-            } else {
-                tabAi.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition bg-purple-600 text-white shadow-md';
-                tabMain.className = 'px-6 py-2 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white';
-            }
-            fetchData();
-        }
-
-        // Fetch library data
+        // Fetch library data (Merged)
         async function fetchData() {
             try {
-                if (currentTab === 'main') {
-                    const res = await fetch('/api/all_books');
-                    const data = await res.json();
-                    libraryData.books = data.books || [];
-
-                    const deptRes = await fetch('/api/departments');
-                    const deptData = await deptRes.json();
-                    libraryData.departments = deptData.departments || [];
-                } else {
-                    const res = await fetch('/api/ai_books');
-                    const data = await res.json();
-                    libraryData.books = data.books || [];
-                    
-                    const depts = Array.from(new Set(libraryData.books.map(b => b.department)));
-                    libraryData.departments = depts.map(d => ({
-                        name: d,
-                        book_count: libraryData.books.filter(b => b.department === d).length
-                    }));
+                // Fetch both standard and AI books concurrently
+                const [mainRes, aiRes] = await Promise.all([
+                    fetch('/api/all_books'),
+                    fetch('/api/ai_books')
+                ]);
+                
+                const mainData = await mainRes.json();
+                const aiData = await aiRes.json();
+                
+                // Merge books
+                const allBooks = [...(mainData.books || []), ...(aiData.books || [])];
+                
+                // Group departments natively
+                const deptsMap = {};
+                if (mainData.departments) {
+                    mainData.departments.forEach(d => deptsMap[d.name] = d);
                 }
+                
+                allBooks.forEach(b => {
+                    if (!deptsMap[b.department]) {
+                        deptsMap[b.department] = { name: b.department, book_count: 0 };
+                    }
+                    deptsMap[b.department].book_count++;
+                });
+
+                libraryData.books = allBooks;
+                libraryData.departments = Object.values(deptsMap).sort((a,b) => b.book_count - a.book_count);
 
                 renderLibrary();
                 document.getElementById('total-books').textContent = libraryData.books.length;
             } catch (err) {
                 console.error('Failed to fetch data:', err);
             }
+        }
+        
+        // Custom AI Generation with SSE
+        let sseSource = null;
+        function startCustomAIGeneration() {
+            const input = document.getElementById('ai-topic-input');
+            const topic = input.value.trim();
+            if (!topic) return;
+            
+            input.value = '';
+            
+            const modal = document.getElementById('ai-wait-modal');
+            const titleEl = document.getElementById('ai-wait-title');
+            const quoteEl = document.getElementById('ai-wait-quote');
+            
+            titleEl.textContent = `Writing "${topic}"...`;
+            quoteEl.textContent = "Connecting to neural network...";
+            modal.classList.remove('hidden');
+            
+            if(sseSource) sseSource.close();
+            
+            sseSource = new EventSource(`/api/ai/generate_stream?topic=${encodeURIComponent(topic)}`);
+            
+            sseSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.status === 'quote') {
+                    quoteEl.textContent = `"${data.message}"`;
+                } else if (data.status === 'init') {
+                    quoteEl.textContent = data.message;
+                } else if (data.status === 'complete') {
+                    sseSource.close();
+                    modal.classList.add('hidden');
+                    fetchData(); // refresh library to show new book!
+                } else if (data.status === 'error') {
+                    sseSource.close();
+                    quoteEl.textContent = "Error: " + data.message;
+                    setTimeout(() => modal.classList.add('hidden'), 3000);
+                }
+            };
+            
+            sseSource.onerror = function() {
+                sseSource.close();
+                quoteEl.textContent = "Connection lost. Checking status...";
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    fetchData();
+                }, 4000);
+            };
         }
 
         // Render library
@@ -754,7 +810,10 @@
             if (pdfObserver) pdfObserver.disconnect();
 
             try {
-                const baseUrl = currentTab === 'main' ? '/api/read' : '/api/ai_read';
+                // Determine if it's an AI book by checking if it has a drive_id, 
+                // but our backend actually routes based on AI or local. 
+                // Since AI books are loaded from Drive, we can route all to standard /api/read unless it has a drive_id
+                const baseUrl = book.drive_id ? '/api/ai_read' : '/api/read';
                 const url = `${baseUrl}/${encodeURIComponent(book.department)}/${encodeURIComponent(book.filename)}`;
                 const dlBtn = document.getElementById('pdf-download-link');
                 if (dlBtn) dlBtn.href = url;

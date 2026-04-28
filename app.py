@@ -14,7 +14,7 @@ import random
 import re
 import io
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for
+from flask import Flask, request, jsonify, render_template, session, send_file, redirect, url_for, Response
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -133,9 +133,9 @@ def save_book_order(order_data):
 
 # ============== AI Generator Logic ==============
 
-def generate_ai_book():
-    topic = random.choice(AI_TOPICS)
-    prompt = f"""Write a beautifully formatted HTML article about a random interesting concept in the field of {topic}. 
+def generate_ai_book(custom_topic=None):
+    topic = custom_topic if custom_topic else random.choice(AI_TOPICS)
+    prompt = f"""Write a beautifully formatted HTML article about a fascinating concept in the field of {topic}.
 REQUIREMENTS:
 - The HTML should be highly colored and reader-friendly. 
 - Use inline CSS to style different colored text for headings.
@@ -232,6 +232,37 @@ def ai_scheduler_loop():
             if not AI_GENERATOR_RUNNING:
                 break
             time.sleep(1)
+
+@app.route('/api/ai/generate_stream')
+def generate_stream():
+    topic = request.args.get('topic', '').strip()
+    if not topic:
+        topic = random.choice(AI_TOPICS)
+        
+    def sse_generator():
+        # 1. Send init
+        yield f"data: {json.dumps({'status': 'init', 'message': f'Connecting to AI core for {topic}...' })}\n\n"
+        
+        # 2. Get quote
+        api_key = os.environ.get('OLLAMA_API_KEY', OPENAI_API_KEY)
+        client = Client(host="https://ollama.com", headers={'Authorization': 'Bearer ' + str(api_key)})
+        messages = [{"role": "user", "content": f"Give me a single, very short, fascinating, and suspenseful fact about {topic}. Keep it under 20 words. No intro."}]
+        try:
+            resp = client.chat('gpt-oss:120b', messages=messages)
+            quote = resp['message']['content'].strip()
+            if quote.startswith('"') and quote.endswith('"'): quote = quote[1:-1]
+            yield f"data: {json.dumps({'status': 'quote', 'message': quote })}\n\n"
+        except Exception:
+            yield f"data: {json.dumps({'status': 'quote', 'message': f'Uncovering the secrets of {topic}...' })}\n\n"
+            
+        # 3. Generate book
+        try:
+            generate_ai_book(topic)
+            yield f"data: {json.dumps({'status': 'complete', 'message': 'Book added to your library!'})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
+            
+    return Response(sse_generator(), mimetype='text/event-stream')
 
 # ============== Routes ==============
 
