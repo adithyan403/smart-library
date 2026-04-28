@@ -44,34 +44,45 @@ DRIVE_FOLDER_ID = "1xEzh5cOTZBQbQkdzmsG-fDjuX5gG4Wg0"
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
 def get_gdrive_service():
-    # 1. Render Deployment (Headless Server-to-Server)
-    if 'GOOGLE_CREDENTIALS_JSON' in os.environ:
-        try:
-            creds_info = json.loads(os.environ['GOOGLE_CREDENTIALS_JSON'])
-            creds = service_account.Credentials.from_service_account_info(creds_info, scopes=SCOPES)
-            return build('drive', 'v3', credentials=creds)
-        except Exception as e:
-            print(f"Service Account Auth Error: {e}")
-            return None
-
-    # 2. Local Environment Fallback (User Auth)
     creds = None
-    if os.path.exists('token.json'):
+    
+    # 1. Render Deployment via User Token (Bypasses Service Account Quota)
+    if 'GOOGLE_TOKEN_JSON' in os.environ:
+        try:
+            token_info = json.loads(os.environ['GOOGLE_TOKEN_JSON'])
+            creds = Credentials.from_authorized_user_info(token_info, SCOPES)
+        except Exception as e:
+            print(f"Token Env Auth Error: {e}")
+            
+    # 2. Local Environment Fallback (User Auth)
+    if not creds and os.path.exists('token.json'):
         try:
             creds = Credentials.from_authorized_user_file('token.json', SCOPES)
         except Exception:
             pass
+            
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+                if not 'GOOGLE_TOKEN_JSON' in os.environ:
+                    with open('token.json', 'w') as token:
+                        token.write(creds.to_json())
+            except Exception as e:
+                print(f"Google Drive Token Refresh Error: {e}")
+                return None
         else:
+            if 'GOOGLE_TOKEN_JSON' in os.environ:
+                print("Render Auth Failed: GOOGLE_TOKEN_JSON is completely invalid or missing refresh_token.")
+                return None
             if not os.path.exists('credentials.json'):
                 print("Google Drive warning: credentials.json not found! Drive functions will fail.")
                 return None
             flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
             creds = flow.run_local_server(port=8080)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
+                
     try:
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
