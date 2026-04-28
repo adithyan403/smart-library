@@ -27,8 +27,8 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
 # Configuration
-LIBRARY_ROOT = "D:/library/"
-AI_LIBRARY_ROOT = "D:/ai_library/"
+LIBRARY_ROOT = "library/"
+AI_LIBRARY_ROOT = "ai_library/"
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
 ALLOWED_EXTENSION = {'pdf'}
 ADMIN_USERNAME = "admin"
