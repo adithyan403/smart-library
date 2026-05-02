@@ -139,9 +139,10 @@ def generate_ai_book(custom_topic=None):
 REQUIREMENTS:
 - The HTML should be highly colored and reader-friendly. 
 - Use inline CSS to style different colored text for headings.
-- Include topic-relevant images from the web using exactly this HTML format: <img src="https://image.pollinations.ai/prompt/[url-encoded-description]" alt="description" style="max-width:100%; border-radius:8px; margin:20px 0;">
+- Include exactly ONE topic-relevant image from the web using exactly this HTML format: <img src="https://image.pollinations.ai/prompt/[url-encoded-description]" alt="description" style="max-width:100%; border-radius:8px; margin:20px 0;">
 - IMPORTANT: You MUST use the <img> HTML tag. Do NOT use markdown.
 - IMPORTANT: Replace any spaces in the image URL prompt with %20. Example: https://image.pollinations.ai/prompt/biology%20cell%20diagram
+- IMPORTANT: Only insert one single image in the entire document.
 - Greatly increase the depth of the content by adding helpful data tables, comparative analysis blocks, and real-world examples to explain the concepts.
 - The very first element MUST be an <h1> tag containing the exact title of the article.
 - Use simple language for easier understanding.
